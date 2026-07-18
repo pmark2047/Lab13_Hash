@@ -107,7 +107,15 @@ public:
    //
    // Access
    //
-   
+    iterator find(const T & element)
+    {
+        for (auto it = begin(); it != end(); it++)
+        {
+            if (*it == element)
+                return it;
+        }
+        return end();
+    }
    T & front();
    T & back();
 
@@ -686,7 +694,7 @@ typename list <T, A> ::iterator list <T, A> ::insert(list <T, A> ::iterator it,
 template <typename T, typename A>
 void swap(list <T, A> & lhs, list <T, A> & rhs)
 {
-
+    lhs.swap(rhs);
 }
 
 }; // namespace custom

@@ -412,7 +412,23 @@ void unordered_set<T, Hash, E, A>::rehash(size_t numBuckets)
 template <typename T, typename H, typename E, typename A>
 typename unordered_set <T, H, E, A> ::iterator unordered_set<T, H, E, A>::find(const T& t)
 {
-   return iterator();
+    // is it empty already?
+    if (buckets.empty())
+        return end();
+    
+    // get the index of t
+    size_t index = bucket(t);
+    
+    // find t in the list and put it in an iterator
+    typename custom::list<T, A>::iterator itList = buckets[index].find(t);
+    
+    if (itList != buckets[index].end())
+    {
+        typename custom::vector<custom::list<T, A>>::iterator itVector(index, buckets);
+        return iterator(buckets.end(), itVector, itList);
+    }
+    else
+        return end();
 }
 
 /*****************************************
@@ -432,6 +448,7 @@ typename unordered_set <T, H, E, A> ::iterator & unordered_set<T, H, E, A>::iter
 template <typename T, typename H, typename E, typename A>
 void swap(unordered_set<T,H,E,A>& lhs, unordered_set<T,H,E,A>& rhs)
 {
+    lhs.swap(rhs);
 }
 
 }
