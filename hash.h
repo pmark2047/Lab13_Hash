@@ -180,7 +180,9 @@ public:
    }
    float load_factor() const noexcept 
    { 
-      return (float)99.0;
+      if (buckets.empty())
+         return 0.0;
+      return numElements / buckets.size();
    }
    float max_load_factor() const noexcept
    { 
