@@ -129,7 +129,8 @@ public:
    //
    size_t bucket(const T& t)
    {
-      return (size_t)99;
+      Hash hasher;
+      return hasher(t) % buckets.size();
    }
    iterator find(const T& t);
 
@@ -148,7 +149,13 @@ public:
    //
    void clear() noexcept
    {
+      for (size_t i = 0; i < buckets.size(); ++i)
+      {
+         buckets[i].clear();
+      }
+      numElements = 0;
    }
+   
    iterator erase(const T& t);
 
    //
@@ -156,30 +163,36 @@ public:
    //
    size_t size() const 
    { 
-      return (size_t)99;
+      return numElements;
    }
    bool empty() const 
    { 
-      return false; 
+      return numElements == 0;
    }
    size_t bucket_count() const 
    { 
-      return (size_t)99;
+      return buckets.size();
    }
    size_t bucket_size(size_t i) const
    {
-      return (size_t)99;
+      if (i < buckets.size())
+         return buckets[i].size();
+      return 0;
    }
    float load_factor() const noexcept 
    { 
-      return (float)99.0; 
+      if (buckets.empty())
+         return 0.0;
+      return numElements / buckets.size();
    }
-   float max_load_factor() const noexcept 
+   float max_load_factor() const noexcept
    { 
-      return (float)99.0; 
+      return maxLoadFactor;
    }
    void  max_load_factor(float m)
    {
+      if (m > 0.0)
+         maxLoadFactor = m;
    }
 
 #ifdef DEBUG // make this visible to the unit tests
@@ -190,7 +203,7 @@ private:
 
    size_t min_buckets_required(size_t num) const
    {
-      return (size_t)99;
+      return std::ceil(num / maxLoadFactor);
    }
 
    custom::vector<custom::list<T,A>> buckets;  // each bucket in the hash
