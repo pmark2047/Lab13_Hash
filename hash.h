@@ -108,14 +108,26 @@ public:
    class local_iterator;
    iterator begin()
    {
-      if (buckets.empty())
+      if (empty() || buckets.empty())
          return end();
-      return iterator(buckets.end(), buckets.begin(), buckets[0].begin());
+      
+      for (auto it = buckets.begin(); it != buckets.end(); it++)
+      {
+         if (!(*it).empty())
+            return iterator(buckets.end(), it, (*it).begin());
+      }
+      return end();
    }
+   
    iterator end()
    {
-      return iterator(buckets.end(), buckets.end(), typename custom::list<T, A>::iterator());
+      typename custom::list<T, A>::iterator endList;
+      if (!buckets.empty())
+         endList = buckets[0].end();
+      
+      return iterator(buckets.end(), buckets.end(), endList);
    }
+   
    local_iterator begin(size_t iBucket)
    {
       return local_iterator();
