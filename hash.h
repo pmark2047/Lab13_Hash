@@ -159,6 +159,9 @@ public:
    void rehash(size_t numBuckets);
    void reserve(size_t num)
    {
+       size_t newCount = num;
+       if (newCount > buckets.size())
+           rehash(newCount);
    }
 
    // 
