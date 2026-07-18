@@ -108,20 +108,36 @@ public:
    class local_iterator;
    iterator begin()
    {
-      if (buckets.empty())
+      if (empty() || buckets.empty())
          return end();
-      return iterator(buckets.end(), buckets.begin(), buckets[0].begin());
+      
+      for (auto it = buckets.begin(); it != buckets.end(); it++)
+      {
+         if (!(*it).empty())
+            return iterator(buckets.end(), it, (*it).begin());
+      }
+      return end();
    }
+   
    iterator end()
    {
-      return iterator(buckets.end(), buckets.end(), typename custom::list<T, A>::iterator());
+      typename custom::list<T, A>::iterator endList;
+      if (!buckets.empty())
+         endList = buckets[0].end();
+      
+      return iterator(buckets.end(), buckets.end(), endList);
    }
+   
    local_iterator begin(size_t iBucket)
    {
+      if (iBucket < buckets.size())
+         return local_iterator(buckets[iBucket].begin());
       return local_iterator();
    }
    local_iterator end(size_t iBucket)
    {
+      if (iBucket < buckets.size())
+         return local_iterator(buckets[iBucket].end());
       return local_iterator();
    }
 
@@ -311,14 +327,17 @@ public:
    // 
    // Construct
    //
-   local_iterator()  
+   local_iterator() : itList()
    {
+      this->itList.p = nullptr;
    }
    local_iterator(const typename custom::list<T>::iterator& itList) 
    {
+      this->itList = itList;
    }
    local_iterator(const local_iterator& rhs) 
-   { 
+   {
+      *this = rhs;
    }
 
    //
@@ -326,6 +345,7 @@ public:
    //
    local_iterator& operator = (const local_iterator& rhs)
    {
+      this->itList = rhs.itList;
       return *this;
    }
 
@@ -334,11 +354,11 @@ public:
    //
    bool operator != (const local_iterator& rhs) const
    {
-      return true;
+      return this->itList != rhs.itList;
    }
    bool operator == (const local_iterator& rhs) const
    {
-      return true;
+      return this->itList == rhs.itList;
    }
 
    // 
@@ -346,7 +366,7 @@ public:
    //
    T& operator * ()
    {
-      return *(new T);
+      return *itList;
    }
 
    // 
@@ -354,11 +374,14 @@ public:
    //
    local_iterator& operator ++ ()
    {
+      ++itList;
       return *this;
    }
    local_iterator operator ++ (int postfix)
    {
-      return *this;
+      local_iterator old = *this;
+      ++(*this);
+      return old;
    }
 
 #ifdef DEBUG // make this visible to the unit tests
@@ -476,6 +499,21 @@ typename unordered_set <T, H, E, A> ::iterator unordered_set<T, H, E, A>::find(c
 template <typename T, typename H, typename E, typename A>
 typename unordered_set <T, H, E, A> ::iterator & unordered_set<T, H, E, A>::iterator::operator ++ ()
 {
+   if (itVector == itVectorEnd)
+      return *this;
+   ++itList;
+   while (itVector != itVectorEnd && itList == (*itVector).end())
+   {
+      ++itVector;
+      if (itVector != itVectorEnd)
+      {
+         itList = (*itVector).begin();
+      }
+   }
+   if (itVector == itVectorEnd)
+   {
+      itList = typename custom::list<T>::iterator();
+   }
    return *this;
 }
 
