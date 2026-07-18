@@ -175,15 +175,12 @@ public:
    }
    size_t bucket_size(size_t i) const
    {
-      if (i < buckets.size())
-         return buckets[i].size();
-      return 0;
+
+      return buckets[i].size();
    }
    float load_factor() const noexcept 
    { 
-      if (buckets.empty())
-         return 0.0;
-      return numElements / buckets.size();
+      return (float)99.0;
    }
    float max_load_factor() const noexcept
    { 
@@ -191,8 +188,7 @@ public:
    }
    void  max_load_factor(float m)
    {
-      if (m > 0.0)
-         maxLoadFactor = m;
+      maxLoadFactor = m;
    }
 
 #ifdef DEBUG // make this visible to the unit tests
@@ -375,6 +371,7 @@ typename unordered_set <T, Hash, E, A> ::iterator unordered_set<T,Hash,E,A>::era
 template <typename T, typename H, typename E, typename A>
 custom::pair<typename custom::unordered_set<T, H, E, A>::iterator, bool> unordered_set<T, H, E, A>::insert(const T& t)
 {
+    
    return custom::pair<custom::unordered_set<T, H, E, A>::iterator, bool>(iterator(), true);
 }
 template <typename T, typename H, typename E, typename A>
