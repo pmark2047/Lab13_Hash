@@ -387,8 +387,46 @@ typename unordered_set <T, Hash, E, A> ::iterator unordered_set<T,Hash,E,A>::era
 template <typename T, typename H, typename E, typename A>
 custom::pair<typename custom::unordered_set<T, H, E, A>::iterator, bool> unordered_set<T, H, E, A>::insert(const T& t)
 {
+    // check if it's empty and rehash if necessary
+    if (buckets.empty())
+        rehash(8);
     
-   return custom::pair<custom::unordered_set<T, H, E, A>::iterator, bool>(iterator(), true);
+    // get the index
+    size_t index = bucket(t);
+    
+    // check for the element in the buckets
+    for (auto it = buckets[index].begin(); it != buckets[index].end(); it++)
+    {
+        // if it is there, return
+        if (*it == t)
+        {
+            typename custom::vector<custom::list<T, A>>::iterator itVec(index, buckets);
+            iterator itHash(buckets.end(), itVec, it);
+            
+            return custom::pair<custom::unordered_set<T, H, E, A>::iterator, bool>(itHash, false);
+        }
+    }
+    
+    // check if we need more space
+    if (min_buckets_required(numElements + 1) > bucket_count())
+    {
+        // reserve more space
+        reserve(numElements * 2);
+        index = bucket(t);
+    }
+    
+    // add the element
+    buckets[index].push_back(t);
+    numElements++;
+    
+    // get iterator to new element
+    typename custom::list<T, A>::iterator itAdded = buckets[index].find(t);
+    // get vector iterator
+    typename custom::vector<custom::list<T, A>>::iterator itVec(index, buckets);
+    // create hash iterator
+    iterator itHash(buckets.end(), itVec, itAdded);
+    // return results
+    return custom::pair<custom::unordered_set<T, H, E, A>::iterator, bool>(itHash, true);
 }
 template <typename T, typename H, typename E, typename A>
 void unordered_set<T, H, E, A>::insert(const std::initializer_list<T> & il)
