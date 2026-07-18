@@ -108,12 +108,13 @@ public:
    class local_iterator;
    iterator begin()
    {
-       
-       return end();
+      if (buckets.empty())
+         return end();
+      return iterator(buckets.end(), buckets.begin(), buckets[0].begin());
    }
    iterator end()
    {
-      return iterator();
+      return iterator(buckets.end(), buckets.end(), typename custom::list<T, A>::iterator());
    }
    local_iterator begin(size_t iBucket)
    {
@@ -220,22 +221,23 @@ class unordered_set <T, H, E, A> ::iterator
 public:
    // 
    // Construct
-   iterator()  
+   iterator() : itVectorEnd(), itList(), itVector()
    {
-      itVectorEnd.p = itVector.p = nullptr;
-      itList.p = nullptr;
+      this->itVectorEnd.p = nullptr;
+      this->itVector.p    = nullptr;
+      this->itList.p      = nullptr;
    }
    iterator(const typename custom::vector<custom::list<T> >::iterator& itVectorEnd,
             const typename custom::vector<custom::list<T> >::iterator& itVector,
             const typename custom::list<T>::iterator &itList)
    {
-      itVectorEnd.p = itVector.p = nullptr;
-      itList.p = nullptr;
+      this->itVectorEnd = itVectorEnd;
+      this->itVector = itVector;
+      this->itList = itList;
    }
    iterator(const iterator& rhs) 
    { 
-      itVectorEnd.p = itVector.p = nullptr;
-      itList.p = nullptr;
+      *this = rhs;
    }
 
    //
@@ -243,6 +245,9 @@ public:
    //
    iterator& operator = (const iterator& rhs)
    {
+      this->itVectorEnd = rhs.itVectorEnd;
+      this->itVector    = rhs.itVector;
+      this->itList      = rhs.itList;
       return *this;
    }
 
@@ -250,12 +255,19 @@ public:
    // Compare
    //
    bool operator != (const iterator& rhs) const 
-   { 
-      return true; 
+   {
+      return !(*this == rhs);
    }
-   bool operator == (const iterator& rhs) const 
-   { 
-      return true;
+   
+   bool operator == (const iterator& rhs) const
+   {
+      if (this->itVector == this->itVectorEnd && rhs.itVector == rhs.itVectorEnd)
+         return true;
+      
+      if ((this->itVector == this->itVectorEnd) != (rhs.itVector == rhs.itVectorEnd))
+         return false;
+      
+      return (this->itVector == rhs.itVector && this->itList == rhs.itList);
    }
 
    // 
@@ -263,7 +275,7 @@ public:
    //
    T& operator * ()
    {
-      return *(new T);
+      return *itList;
    }
 
    //
@@ -272,7 +284,9 @@ public:
    iterator& operator ++ ();
    iterator operator ++ (int postfix)
    {
-      return *this;
+      iterator old = *this;
+      ++(*this);
+      return old;
    }
 
 #ifdef DEBUG // make this visible to the unit tests
