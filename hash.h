@@ -400,7 +400,19 @@ private:
 template <typename T, typename Hash, typename E, typename A>
 typename unordered_set <T, Hash, E, A> ::iterator unordered_set<T,Hash,E,A>::erase(const T& t)
 {
-   return iterator();
+   iterator itErase = find(t);
+   if (itErase == end())
+      return itErase;
+
+
+   iterator itReturn = itErase;
+   ++itReturn;
+
+   (*itErase.itVector).erase(itErase.itList);
+
+   --numElements;
+
+   return itReturn;
 }
 
 /*****************************************
@@ -463,6 +475,20 @@ void unordered_set<T, H, E, A>::insert(const std::initializer_list<T> & il)
 template <typename T, typename Hash, typename E, typename A>
 void unordered_set<T, Hash, E, A>::rehash(size_t numBuckets)
 {
+   if (numBuckets <= bucket_count())
+   return;
+
+   custom::vector<custom::list<T, A>> bucketsNew(numBuckets);
+   Hash hasher;
+
+   for (iterator it = begin(); it != end(); ++it)
+   {
+      size_t index = hasher(*it) % numBuckets;
+
+      bucketsNew[index].push_back(std::move(*it));
+   }
+
+   std::swap(buckets, bucketsNew);
 }
 
 
